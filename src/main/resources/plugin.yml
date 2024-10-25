@@ -1,5 +1,5 @@
-name: '${pluginName}'
-version: '${version}'
-main: '${group}.${packageName}.plugin.${pluginName}Plugin'
-api-version: '${paperVersion}'
+name: 'Sample'
+version: '0.0.1-SNAPSHOT'
+main: 'io.github.lepitar.sample.plugin.SamplePlugin'
+api-version: '1.20'
 depend: [CommandAPI]

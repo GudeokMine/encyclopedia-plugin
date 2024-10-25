@@ -69,7 +69,7 @@ tasks.reobfJar {
     outputs.upToDateWhen { false }
     doLast {
         // 플러그인 폴더 및 업데이트 폴더 경로 설정
-        val plugins = file("Y:\\minecaft\\plugins")
+        val plugins = file("C:\\minecraft\\plugins")
         val update = plugins.resolve("update")
 
         // 빌드된 JAR 파일
