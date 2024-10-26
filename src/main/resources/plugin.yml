@@ -1,5 +1,5 @@
-name: 'Sample'
+name: 'Encyclopedia'
 version: '0.0.1-SNAPSHOT'
-main: 'io.github.lepitar.sample.plugin.SamplePlugin'
+main: 'io.github.lepitar.encyclopedia.plugin.EncyclopediaPlugin'
 api-version: '1.20'
-depend: [CommandAPI]
+depend: [ CommandAPI ]

@@ -1,5 +1,7 @@
-package io.github.lepitar.sample.plugin
+package io.github.lepitar.encyclopedia.plugin
 
+import io.github.lepitar.encyclopedia.plugin.gui.EncyclopediaGUI
+import io.github.lepitar.encyclopedia.plugin.item.ItemCollectionManager
 import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -8,7 +10,7 @@ import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.plugin.java.JavaPlugin
 
 
-class SamplePlugin : JavaPlugin(), Listener {
+class EncyclopediaPlugin : JavaPlugin(), Listener {
     private lateinit var collectionManager: ItemCollectionManager
 
     override fun onEnable() {
@@ -34,7 +36,7 @@ class SamplePlugin : JavaPlugin(), Listener {
         }
 
         val player = event.player
-        ItemPaletteGUI.Builder("도감")
+        EncyclopediaGUI.Builder("도감")
             .asItem(Material::isFlammable)
             .forPlayer(player)
             .withCollectionManager(collectionManager)

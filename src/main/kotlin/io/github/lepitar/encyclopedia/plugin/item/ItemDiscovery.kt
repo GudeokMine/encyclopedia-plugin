@@ -1,4 +1,4 @@
-package io.github.lepitar.sample.plugin
+package io.github.lepitar.encyclopedia.plugin.item
 
 import org.bukkit.Material
 

@@ -1,4 +1,4 @@
-package io.github.lepitar.sample.plugin
+package io.github.lepitar.encyclopedia.plugin.gui
 
 import com.github.stefvanschie.inventoryframework.gui.GuiItem
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui
@@ -8,6 +8,7 @@ import com.github.stefvanschie.inventoryframework.pane.PaginatedPane
 import com.github.stefvanschie.inventoryframework.pane.Pane
 import com.github.stefvanschie.inventoryframework.pane.Pane.Priority
 import com.github.stefvanschie.inventoryframework.pane.StaticPane
+import io.github.lepitar.encyclopedia.plugin.item.ItemCollectionManager
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.bukkit.Sound
@@ -20,7 +21,7 @@ import java.util.function.Function
 import java.util.stream.Collectors.toCollection
 
 
-class ItemPaletteGUI private constructor(builder: Builder) : ChestGui(6, builder.title) {
+class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builder.title) {
     private val itemFilter: Predicate<Material>?
     private val itemTransformer: Function<Material, GuiItem>?
     private var itemsPane: PaginatedPane? = null
@@ -169,14 +170,14 @@ class ItemPaletteGUI private constructor(builder: Builder) : ChestGui(6, builder
         PREVIOUS(
             BiPredicate { page: Int, _: PaginatedPane? -> page > 0 },
             IntUnaryOperator { page: Int ->
-                var page = page
-                --page
+                var currentPage = page
+                --currentPage
             }),
         NEXT(
             BiPredicate { page: Int, itemsPane: PaginatedPane? -> page < (itemsPane!!.pages - 1) },
             IntUnaryOperator { page: Int ->
-                var page = page
-                ++page
+                var currentPage = page
+                ++currentPage
             });
 
         fun toItemStack(gui: ChestGui, itemName: String?, itemsPane: PaginatedPane?): GuiItem {
@@ -217,8 +218,8 @@ class ItemPaletteGUI private constructor(builder: Builder) : ChestGui(6, builder
             return this
         }
 
-        fun build(): ItemPaletteGUI {
-            return ItemPaletteGUI(this)
+        fun build(): EncyclopediaGUI {
+            return EncyclopediaGUI(this)
         }
     }
 

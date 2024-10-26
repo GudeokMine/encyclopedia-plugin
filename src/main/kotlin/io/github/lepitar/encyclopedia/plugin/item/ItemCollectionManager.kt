@@ -1,11 +1,10 @@
-package io.github.lepitar.sample.plugin
+package io.github.lepitar.encyclopedia.plugin.item
 
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.entity.Player
 import org.bukkit.plugin.java.JavaPlugin
 import java.io.File
 import java.util.*
-import kotlin.collections.HashMap
 
 class ItemCollectionManager(private val plugin: JavaPlugin) {
     private val collections: MutableMap<UUID, PlayerItemCollection> = HashMap()
@@ -30,7 +29,9 @@ class ItemCollectionManager(private val plugin: JavaPlugin) {
         config.getKeys(false).forEach { uuid ->
             val collection = PlayerItemCollection()
             @Suppress("UNCHECKED_CAST")
-            collection.deserialize(config.getConfigurationSection(uuid)?.getValues(false) as? Map<String, Boolean> ?: mapOf())
+            collection.deserialize(
+                config.getConfigurationSection(uuid)?.getValues(false) as? Map<String, Boolean> ?: mapOf()
+            )
             collections[UUID.fromString(uuid)] = collection
         }
     }
