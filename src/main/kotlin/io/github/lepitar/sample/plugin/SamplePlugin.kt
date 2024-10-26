@@ -3,10 +3,8 @@
 package io.github.lepitar.sample.plugin
 
 import com.github.stefvanschie.inventoryframework.gui.GuiItem
-import net.kyori.adventure.text.Component
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.Entity
-import org.bukkit.Color
 import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -15,7 +13,6 @@ import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.java.JavaPlugin
-import java.util.*
 
 
 class SamplePlugin : JavaPlugin(), Listener {
@@ -42,43 +39,13 @@ class SamplePlugin : JavaPlugin(), Listener {
             return
         }
 
-//        val gui = ChestGui(5, "도감")
-//
-//        val pages = PaginatedPane(0, 0, 6, 4)
-//
-//        val nextButton = OutlinePane(4, 5, 2, 1)
-//        val previousButton = OutlinePane(0, 5, 2, 1)
-//        val achievementButton = OutlinePane(2, 5, 2, 1)
-//
-//        val nextButtonItem = ItemStack(Material.LIME_STAINED_GLASS_PANE)
-//        val nextButtonMeta = nextButtonItem.itemMeta
-//        nextButtonMeta.displayName(Component.text(">>"))
-//        nextButtonItem.itemMeta = nextButtonMeta
-//        nextButton.addItem(GuiItem(nextButtonItem))
-//
-//        val previousButtonItem = ItemStack(Material.LIME_STAINED_GLASS_PANE)
-//        val previousButtonMeta = previousButtonItem.itemMeta
-//        previousButtonMeta.displayName(Component.text("<<"))
-//        previousButtonItem.itemMeta = previousButtonMeta
-//        previousButton.addItem(GuiItem(previousButtonItem))
-//
-//        val achievementButtonItem = ItemStack(Material.YELLOW_STAINED_GLASS_PANE)
-//        val achievementButtonMeta = achievementButtonItem.itemMeta
-//        achievementButtonMeta.displayName(Component.text("도감 달성률 ${0}%"))
-//        achievementButtonItem.itemMeta = achievementButtonMeta
-//        achievementButton.addItem(GuiItem(achievementButtonItem))
-//
-//        nextButton.setRepeat(true)
-//        previousButton.setRepeat(true)
-//        achievementButton.setRepeat(true)
-//
-//        gui.addPane(nextButton)
-//        gui.addPane(previousButton)
-//        gui.addPane(achievementButton)
+        val itemPaletteGUI = ItemPaletteGUI.Builder("도감")
+            .show(Material::isFlammable)
+            .asItem(this::getDisplayItem)
+            .build()
 
         val player = event.player
 
-        val itemPaletteGUI = ItemPaletteGUI.Builder("test").show(Material::isFlammable).`as`(this::getDisplayItem).build()
         itemPaletteGUI.show(player)
     }
 
@@ -89,7 +56,6 @@ class SamplePlugin : JavaPlugin(), Listener {
             val player = event.whoClicked
             player.closeInventory()
             player.inventory.addItem(item)
-            player.sendMessage("Don't get close to ${material}!")
         }
     }
 }
