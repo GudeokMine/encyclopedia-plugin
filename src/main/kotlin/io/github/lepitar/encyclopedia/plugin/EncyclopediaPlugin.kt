@@ -37,7 +37,7 @@ class EncyclopediaPlugin : JavaPlugin(), Listener {
 
         val player = event.player
         EncyclopediaGUI.Builder("도감")
-            .asItem(Material::isFlammable)
+            .asItem(Material::isItem)
             .forPlayer(player)
             .withCollectionManager(collectionManager)
             .build()

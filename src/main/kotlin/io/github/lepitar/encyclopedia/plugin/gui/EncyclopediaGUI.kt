@@ -2,12 +2,10 @@ package io.github.lepitar.encyclopedia.plugin.gui
 
 import com.github.stefvanschie.inventoryframework.gui.GuiItem
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui
+import com.github.stefvanschie.inventoryframework.pane.*
 import com.github.stefvanschie.inventoryframework.pane.Orientable.Orientation
-import com.github.stefvanschie.inventoryframework.pane.OutlinePane
-import com.github.stefvanschie.inventoryframework.pane.PaginatedPane
-import com.github.stefvanschie.inventoryframework.pane.Pane
 import com.github.stefvanschie.inventoryframework.pane.Pane.Priority
-import com.github.stefvanschie.inventoryframework.pane.StaticPane
+import com.github.stefvanschie.inventoryframework.pane.util.Pattern
 import io.github.lepitar.encyclopedia.plugin.item.ItemCollectionManager
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
@@ -40,6 +38,7 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
             event.isCancelled = true
         }
         addPane(createItemsPane().also { this.itemsPane = it })
+        addPane(createTabPane())
         addPane(createControlPane())
         addPane(createStatsPane())
         update()
@@ -159,6 +158,20 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
             item.itemMeta = meta
             update()
         }
+    }
+
+    private fun createTabPane(): Pane {
+        val pattern = Pattern("00", "11", "22", "33", "44", "55")
+        val pane = PatternPane(7, 0, 2, 6, pattern)
+
+        pane.bindItem('0', GuiItem(ItemStack(Material.RED_STAINED_GLASS_PANE)))
+        pane.bindItem('1', GuiItem(ItemStack(Material.ORANGE_STAINED_GLASS_PANE)))
+        pane.bindItem('2', GuiItem(ItemStack(Material.YELLOW_STAINED_GLASS_PANE)))
+        pane.bindItem('3', GuiItem(ItemStack(Material.GREEN_STAINED_GLASS_PANE)))
+        pane.bindItem('4', GuiItem(ItemStack(Material.BLUE_STAINED_GLASS_PANE)))
+        pane.bindItem('5', GuiItem(ItemStack(Material.MAGENTA_STAINED_GLASS_PANE)))
+
+        return pane
     }
 
 
