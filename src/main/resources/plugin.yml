@@ -3,3 +3,6 @@ version: '0.0.1-SNAPSHOT'
 main: 'io.github.lepitar.encyclopedia.plugin.EncyclopediaPlugin'
 api-version: '1.20'
 depend: [ CommandAPI ]
+commands:
+  도감:
+    description: '사용자에게 도감 GUI를 보여준다'
