@@ -25,6 +25,7 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
     private var itemsPane: PaginatedPane? = null
     private val player: Player
     private val collectionManager: ItemCollectionManager
+    private var currentTab = ItemTab.ALL
 
     init {
         this.player = builder.player
@@ -62,17 +63,19 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         return pane
     }
 
+
     private fun createItemsPane(): PaginatedPane {
         val itemsToDisplay: Deque<GuiItem> = Arrays.stream(Material.values())
             .filter { material -> !material.isAir }
-            .filter(this.itemFilter)
+            .filter(this.itemFilter ?: Predicate { true })
+            .filter(currentTab.itemFilter)
             .map(this.itemTransformer)
             .collect(toCollection { LinkedList() })
 
         val pane = PaginatedPane(0, 0, 6, 5, Priority.LOWEST)
 
         var i = 0
-        val pagesAmount = (itemsToDisplay.size / ITEMS_PER_PAGE) + 1
+        val pagesAmount = (itemsToDisplay.size + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE
 
         while (i < pagesAmount) {
             pane.addPane(i, createPage(itemsToDisplay))
@@ -80,7 +83,6 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         }
 
         pane.page = 0
-
         return pane
     }
 
@@ -164,12 +166,28 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         val pattern = Pattern("00", "11", "22", "33", "44", "55")
         val pane = PatternPane(7, 0, 2, 6, pattern)
 
-        pane.bindItem('0', GuiItem(ItemStack(Material.RED_STAINED_GLASS_PANE)))
-        pane.bindItem('1', GuiItem(ItemStack(Material.ORANGE_STAINED_GLASS_PANE)))
-        pane.bindItem('2', GuiItem(ItemStack(Material.YELLOW_STAINED_GLASS_PANE)))
-        pane.bindItem('3', GuiItem(ItemStack(Material.GREEN_STAINED_GLASS_PANE)))
-        pane.bindItem('4', GuiItem(ItemStack(Material.BLUE_STAINED_GLASS_PANE)))
-        pane.bindItem('5', GuiItem(ItemStack(Material.MAGENTA_STAINED_GLASS_PANE)))
+        ItemTab.values().forEachIndexed { index, tab ->
+            val tabItem = ItemStack(tab.glassColor).apply {
+                itemMeta = itemMeta?.apply {
+                    displayName(Component.text("§f${tab.displayName}"))
+                }
+            }
+
+            pane.bindItem(index.toString().first(), GuiItem(tabItem) { event ->
+                event.isCancelled = true
+                currentTab = tab
+
+                panes.remove(itemsPane)
+                itemsPane = createItemsPane()
+                addPane(itemsPane!!)
+
+                val controlPane = createControlPane()
+                panes.removeIf { it is StaticPane && it.priority == Priority.LOW }
+                addPane(controlPane)
+
+                update()
+            })
+        }
 
         return pane
     }
@@ -207,6 +225,31 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
                 gui.update()
             })
         }
+    }
+
+
+    private enum class ItemTab(
+        val displayName: String,
+        val glassColor: Material,
+        val itemFilter: Predicate<Material>
+    ) {
+        ALL("전체", Material.MAGENTA_STAINED_GLASS_PANE,
+            Predicate { true }),
+        BLOCKS("블록", Material.RED_STAINED_GLASS_PANE,
+            Predicate { it.isBlock && !it.isAir }),
+        TOOLS("도구", Material.ORANGE_STAINED_GLASS_PANE,
+            Predicate { it.name.endsWith("_PICKAXE") || it.name.endsWith("_AXE") ||
+                    it.name.endsWith("_SHOVEL") || it.name.endsWith("_HOE") ||
+                    it.name.endsWith("_SWORD") }),
+        COMBAT("전투", Material.YELLOW_STAINED_GLASS_PANE,
+            Predicate { it.name.endsWith("_SWORD") || it.name.endsWith("_HELMET") ||
+                    it.name.endsWith("_CHESTPLATE") || it.name.endsWith("_LEGGINGS") ||
+                    it.name.endsWith("_BOOTS") || it == Material.BOW || it == Material.ARROW }),
+        FOOD("음식", Material.GREEN_STAINED_GLASS_PANE,
+            Predicate { it.isEdible }),
+        REDSTONE("레드스톤", Material.BLUE_STAINED_GLASS_PANE,
+            Predicate { it.name.contains("REDSTONE") || it.name.contains("REPEATER") ||
+                    it.name.contains("COMPARATOR") || it.name.contains("PISTON") }),
     }
 
 
