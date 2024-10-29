@@ -22,16 +22,18 @@ import java.util.stream.Collectors.toCollection
 class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builder.title) {
     private val itemFilter: Predicate<Material>?
     private val itemTransformer: Function<Material, GuiItem>?
-    private var itemsPane: PaginatedPane? = null
     private val player: Player
     private val collectionManager: ItemCollectionManager
+    private var itemsPane: PaginatedPane? = null
+    private var controlPane: Pane? = null
+    private var statsPane: Pane? = null
     private var currentTab = ItemTab.ALL
 
     init {
         this.player = builder.player
         this.collectionManager = builder.collectionManager
         this.itemTransformer = builder.itemTransformer ?: Function { material ->
-            createItemGuiItem(material)
+            createItemGui(material)
         }
         this.itemFilter = builder.itemFilter
 
@@ -39,30 +41,55 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
             event.isCancelled = true
         }
         addPane(createItemsPane().also { this.itemsPane = it })
+        addPane(createControlPane().also { this.controlPane = it })
+        addPane(createStatsPane().also { this.statsPane = it })
         addPane(createTabPane())
-        addPane(createControlPane())
-        addPane(createStatsPane())
         update()
     }
 
+    private fun createItemGui(material: Material): GuiItem {
+        val collection = collectionManager.getCollection(player)
+        val isDiscovered = collection.isDiscovered(material)
 
-    /*
-     * Panes
-     */
-    private fun createControlPane(): Pane {
-        val pane = StaticPane(0, 5, 6, 1, Priority.LOW)
+        val item = ItemStack(material)
+        val meta = item.itemMeta
 
-        val previousButton = PageController.PREVIOUS.toItemStack(this, "§f<<", this.itemsPane)
-        pane.addItem(previousButton, 0, 0)
-        pane.addItem(previousButton, 1, 0)
+        meta.displayName(
+            if (isDiscovered) {
+                Component.text("§f${material.name}")
+            } else {
+                Component.text("§7- ??? -")
+            }
+        )
 
-        val nextButton = PageController.NEXT.toItemStack(this, "§f>>", this.itemsPane)
-        pane.addItem(nextButton, 4, 0)
-        pane.addItem(nextButton, 5, 0)
+        item.itemMeta = meta
 
-        return pane
+        return GuiItem(item) { event ->
+            event.isCancelled = true
+
+            if (collection.isDiscovered(material)) {
+                return@GuiItem
+            }
+
+            if (!event.click.isRightClick || event.currentItem?.isSimilar(item) != true) {
+                return@GuiItem
+            }
+
+            collection.discover(material)
+
+            player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f)
+            player.sendMessage("§a새로운 아이템을 발견했습니다: §f${material.name}")
+
+            meta.displayName(Component.text("§f${material.name}"))
+            item.itemMeta = meta
+
+            panes.remove(statsPane)
+            statsPane = createStatsPane()
+            addPane(statsPane!!)
+
+            update()
+        }
     }
-
 
     private fun createItemsPane(): PaginatedPane {
         val itemsToDisplay: Deque<GuiItem> = Arrays.stream(Material.values())
@@ -98,68 +125,47 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         return page
     }
 
+    private fun createControlPane(): Pane {
+        val pane = StaticPane(0, 5, 6, 1, Priority.LOW)
+
+        val previousButton = PageController.PREVIOUS.toItemStack(this, "§f<<", this.itemsPane)
+        pane.addItem(previousButton, 0, 0)
+        pane.addItem(previousButton, 1, 0)
+
+        val nextButton = PageController.NEXT.toItemStack(this, "§f>>", this.itemsPane)
+        pane.addItem(nextButton, 4, 0)
+        pane.addItem(nextButton, 5, 0)
+
+        return pane
+    }
+
     private fun createStatsPane(): Pane {
         val pane = OutlinePane(2, 5, 2, 1, Priority.LOW)
         val collection = collectionManager.getCollection(player)
 
-        val discoveredCount = Material.values().count { collection.isDiscovered(it) }
-        val totalCount = Material.values().count { itemFilter?.test(it) ?: true }
+        val filteredMaterials = Arrays.stream(Material.values())
+            .filter { !it.isAir }
+            .filter(currentTab.itemFilter)
+            .filter(itemFilter ?: Predicate { true })
+            .collect(toCollection { LinkedList() })
 
-        val statsItem = ItemStack(Material.BOOK)
-        val meta = statsItem.itemMeta
+        val discoveredCount = filteredMaterials.count { collection.isDiscovered(it) }
+        val totalCount = filteredMaterials.size
 
-        meta.displayName(Component.text("§6도감 진행도"))
-        meta.lore(
-            listOf(
-                Component.text("§7발견 : $discoveredCount/$totalCount"),
-                Component.text("§7달성률 : ${String.format("%.0f", discoveredCount.toDouble() / totalCount * 100)}%")
-            )
-        )
-        statsItem.itemMeta = meta
+        val statsItem = ItemStack(Material.BOOK).apply {
+            itemMeta = itemMeta?.apply {
+                displayName(Component.text("§6${currentTab.displayName} 도감 진행도"))
+                lore(listOf(
+                    Component.text("§7발견 : $discoveredCount/$totalCount"),
+                    Component.text("§7달성률 : ${String.format("%.0f", discoveredCount.toDouble() / totalCount * 100)}%")
+                ))
+            }
+        }
 
         pane.addItem(GuiItem(statsItem))
         pane.setRepeat(true)
 
         return pane
-    }
-
-    private fun createItemGuiItem(material: Material): GuiItem {
-        val collection = collectionManager.getCollection(player)
-        val isDiscovered = collection.isDiscovered(material)
-
-        val item = ItemStack(material)
-        val meta = item.itemMeta
-
-        meta.displayName(
-            if (isDiscovered) {
-                Component.text("§f${material.name}")
-            } else {
-                Component.text("§7- ??? -")
-            }
-        )
-
-        item.itemMeta = meta
-
-        return GuiItem(item) { event ->
-            event.isCancelled = true
-
-            if (collection.isDiscovered(material)) {
-                return@GuiItem
-            }
-
-            if (!event.click.isRightClick || event.currentItem?.isSimilar(item) != true) {
-                return@GuiItem
-            }
-
-            collection.discover(material)
-
-            player.playSound(player.location, Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f)
-            player.sendMessage("§a새로운 아이템을 발견했습니다: §f${material.name}")
-
-            meta.displayName(Component.text("§f${material.name}"))
-            item.itemMeta = meta
-            update()
-        }
     }
 
     private fun createTabPane(): Pane {
@@ -181,9 +187,13 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
                 itemsPane = createItemsPane()
                 addPane(itemsPane!!)
 
-                val controlPane = createControlPane()
-                panes.removeIf { it is StaticPane && it.priority == Priority.LOW }
-                addPane(controlPane)
+                panes.remove(controlPane)
+                controlPane = createControlPane()
+                addPane(controlPane!!)
+
+                panes.remove(statsPane)
+                statsPane = createStatsPane()
+                addPane(statsPane!!)
 
                 update()
             })
@@ -233,21 +243,21 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         val glassColor: Material,
         val itemFilter: Predicate<Material>
     ) {
-        ALL("전체", Material.MAGENTA_STAINED_GLASS_PANE,
+        ALL("전체", Material.RED_STAINED_GLASS_PANE,
             Predicate { true }),
-        BLOCKS("블록", Material.RED_STAINED_GLASS_PANE,
+        BLOCKS("블록", Material.ORANGE_STAINED_GLASS_PANE,
             Predicate { it.isBlock && !it.isAir }),
-        TOOLS("도구", Material.ORANGE_STAINED_GLASS_PANE,
+        TOOLS("도구", Material.YELLOW_STAINED_GLASS_PANE,
             Predicate { it.name.endsWith("_PICKAXE") || it.name.endsWith("_AXE") ||
                     it.name.endsWith("_SHOVEL") || it.name.endsWith("_HOE") ||
                     it.name.endsWith("_SWORD") }),
-        COMBAT("전투", Material.YELLOW_STAINED_GLASS_PANE,
+        COMBAT("전투", Material.GREEN_STAINED_GLASS_PANE,
             Predicate { it.name.endsWith("_SWORD") || it.name.endsWith("_HELMET") ||
                     it.name.endsWith("_CHESTPLATE") || it.name.endsWith("_LEGGINGS") ||
                     it.name.endsWith("_BOOTS") || it == Material.BOW || it == Material.ARROW }),
-        FOOD("음식", Material.GREEN_STAINED_GLASS_PANE,
+        FOOD("음식", Material.BLUE_STAINED_GLASS_PANE,
             Predicate { it.isEdible }),
-        REDSTONE("레드스톤", Material.BLUE_STAINED_GLASS_PANE,
+        REDSTONE("레드스톤", Material.MAGENTA_STAINED_GLASS_PANE,
             Predicate { it.name.contains("REDSTONE") || it.name.contains("REPEATER") ||
                     it.name.contains("COMPARATOR") || it.name.contains("PISTON") }),
     }
