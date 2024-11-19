@@ -84,7 +84,7 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
             .map(this.itemTransformer)
             .collect(toCollection { LinkedList() })
 
-        val pane = PaginatedPane(0, 0, 6, 5, Priority.LOWEST)
+        val pane = PaginatedPane(0, 0, 5, 5, Priority.LOWEST)
 
         val pagesAmount = (itemsToDisplay.size + ITEMS_PER_PAGE - 1) / ITEMS_PER_PAGE
         repeat(pagesAmount) {
@@ -96,7 +96,7 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
     }
 
     private fun createPage(items: Deque<GuiItem>): Pane {
-        val page = OutlinePane(0, 0, 6, 5, Priority.LOWEST)
+        val page = OutlinePane(1, 0, 5, 5, Priority.LOWEST)
         page.orientation = Orientation.HORIZONTAL
 
         repeat(ITEMS_PER_PAGE) {
@@ -112,8 +112,8 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         val pane = StaticPane(0, 5, 6, 1, Priority.LOW)
 
         val previousButton = PageController.PREVIOUS.toItemStack(this, "§f<<", this.itemsPane)
-        pane.addItem(previousButton, 0, 0)
         pane.addItem(previousButton, 1, 0)
+        pane.addItem(previousButton, 2, 0)
 
         val nextButton = PageController.NEXT.toItemStack(this, "§f>>", this.itemsPane)
         pane.addItem(nextButton, 4, 0)
@@ -123,7 +123,7 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
     }
 
     private fun createStatsPane(): Pane {
-        val pane = OutlinePane(2, 5, 2, 1, Priority.LOW)
+        val pane = OutlinePane(3, 5, 1, 1, Priority.LOW)
         val collection = collectionManager.getCollection(player)
 
         val filteredMaterials = Arrays.stream(Material.values())
@@ -135,8 +135,9 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         val discoveredCount = filteredMaterials.count { collection.isDiscovered(it) }
         val totalCount = filteredMaterials.size
 
-        val statsItem = ItemStack(Material.BOOK).apply {
+        val statsItem = ItemStack(Material.PAPER).apply {
             itemMeta = itemMeta?.apply {
+                setCustomModelData(17741)
                 displayName(Component.text("§6${currentTab.displayName} 도감 진행도"))
                 lore(listOf(
                     Component.text("§7발견 : $discoveredCount/$totalCount"),
@@ -158,6 +159,7 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         ItemTab.values().forEachIndexed { index, tab ->
             val tabItem = ItemStack(tab.glassColor).apply {
                 itemMeta = itemMeta?.apply {
+                    setCustomModelData(17741)
                     displayName(Component.text("§f${tab.displayName}"))
                 }
             }
@@ -205,8 +207,9 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
             });
 
         fun toItemStack(gui: ChestGui, itemName: String?, itemsPane: PaginatedPane?): GuiItem {
-            val item = ItemStack(Material.LIME_STAINED_GLASS_PANE)
+            val item = ItemStack(Material.PAPER)
             val meta = item.itemMeta
+            meta.setCustomModelData(17741)
             meta.displayName(Component.text(itemName.toString()))
             item.setItemMeta(meta)
 
@@ -222,12 +225,12 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
 
 
     private enum class ItemTab(val displayName: String, val glassColor: Material, val itemFilter: Predicate<Material>) {
-        ALL("전체", Material.RED_STAINED_GLASS_PANE, Predicate { true }),
-        BLOCKS("블록", Material.ORANGE_STAINED_GLASS_PANE, Predicate { it.isBlock && !it.isAir }),
-        TOOLS("도구", Material.YELLOW_STAINED_GLASS_PANE, Predicate { it.name.endsWith("_PICKAXE") || it.name.endsWith("_AXE") || it.name.endsWith("_SHOVEL") || it.name.endsWith("_HOE") || it.name.endsWith("_SWORD") }),
-        COMBAT("전투", Material.GREEN_STAINED_GLASS_PANE, Predicate { it.name.endsWith("_SWORD") || it.name.endsWith("_HELMET") || it.name.endsWith("_CHESTPLATE") || it.name.endsWith("_LEGGINGS") || it.name.endsWith("_BOOTS") || it == Material.BOW || it == Material.ARROW }),
-        FOOD("음식", Material.BLUE_STAINED_GLASS_PANE, Predicate { it.isEdible }),
-        REDSTONE("레드스톤", Material.MAGENTA_STAINED_GLASS_PANE, Predicate { it.name.contains("REDSTONE") || it.name.contains("REPEATER") || it.name.contains("COMPARATOR") || it.name.contains("PISTON") })
+        ALL("전체", Material.PAPER, Predicate { true }),
+        BLOCKS("블록", Material.PAPER, Predicate { it.isBlock && !it.isAir }),
+        TOOLS("도구", Material.PAPER, Predicate { it.name.endsWith("_PICKAXE") || it.name.endsWith("_AXE") || it.name.endsWith("_SHOVEL") || it.name.endsWith("_HOE") || it.name.endsWith("_SWORD") }),
+        COMBAT("전투", Material.PAPER, Predicate { it.name.endsWith("_SWORD") || it.name.endsWith("_HELMET") || it.name.endsWith("_CHESTPLATE") || it.name.endsWith("_LEGGINGS") || it.name.endsWith("_BOOTS") || it == Material.BOW || it == Material.ARROW }),
+        FOOD("음식", Material.PAPER, Predicate { it.isEdible }),
+        REDSTONE("레드스톤", Material.PAPER, Predicate { it.name.contains("REDSTONE") || it.name.contains("REPEATER") || it.name.contains("COMPARATOR") || it.name.contains("PISTON") })
     }
 
 
@@ -245,6 +248,6 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
 
 
     companion object {
-        private const val ITEMS_PER_PAGE = 6 * 5
+        private const val ITEMS_PER_PAGE = 5 * 5
     }
 }
