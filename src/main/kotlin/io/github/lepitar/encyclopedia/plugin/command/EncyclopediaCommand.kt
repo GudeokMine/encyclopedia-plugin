@@ -15,7 +15,7 @@ class EncyclopediaCommand(private val collectionManager: ItemCollectionManager) 
             return false
         }
 
-        EncyclopediaGUI.Builder("도감")
+        EncyclopediaGUI.Builder("<shift:-8><glyph:encyclopedia>")
             .asItem(Material::isItem)
             .forPlayer(sender)
             .withCollectionManager(collectionManager)
