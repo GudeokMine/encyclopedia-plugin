@@ -4,5 +4,5 @@ import org.bukkit.Material
 
 data class ItemDiscovery(
     val material: Material,
-    var isDiscovered: Boolean = false
+    var isDiscovered: Boolean = false,
 )

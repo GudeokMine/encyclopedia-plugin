@@ -12,7 +12,7 @@ class ItemCollectionManager(private val plugin: JavaPlugin) {
     fun getCollection(player: Player): PlayerItemCollection {
         return collections.getOrPut(player.uniqueId) { PlayerItemCollection() }
     }
-
+    
     fun saveCollections() {
         val config = YamlConfiguration()
         collections.forEach { (uuid, collection) ->

@@ -18,7 +18,6 @@ import java.util.function.*
 import java.util.function.Function
 import java.util.stream.Collectors.toCollection
 
-
 class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builder.title) {
     private val itemFilter = builder.itemFilter ?: Predicate { true }
     private val itemTransformer = builder.itemTransformer ?: Function(::createItemGui)
@@ -139,10 +138,19 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
             itemMeta = itemMeta?.apply {
                 setCustomModelData(17741)
                 displayName(Component.text("§6${currentTab.displayName} 도감 진행도"))
-                lore(listOf(
-                    Component.text("§7발견 : $discoveredCount/$totalCount"),
-                    Component.text("§7달성률 : ${String.format("%.0f", discoveredCount.toDouble() / totalCount * 100)}%")
-                ))
+                lore(
+                    listOf(
+                        Component.text("§7발견 : $discoveredCount/$totalCount"),
+                        Component.text(
+                            "§7달성률 : ${
+                                String.format(
+                                    "%.0f",
+                                    discoveredCount.toDouble() / totalCount * 100
+                                )
+                            }%"
+                        )
+                    )
+                )
             }
         }
 
@@ -187,11 +195,10 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         return pane
     }
 
-
     private enum class PageController
         (
         private val shouldContinue: BiPredicate<Int, PaginatedPane?>,
-        private val nextPageSupplier: IntUnaryOperator
+        private val nextPageSupplier: IntUnaryOperator,
     ) {
         PREVIOUS(
             BiPredicate { page: Int, _: PaginatedPane? -> page > 0 },
@@ -223,16 +230,35 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         }
     }
 
-
     private enum class ItemTab(val displayName: String, val glassColor: Material, val itemFilter: Predicate<Material>) {
         ALL("전체", Material.PAPER, Predicate { true }),
         BLOCKS("블록", Material.PAPER, Predicate { it.isBlock && !it.isAir }),
-        TOOLS("도구", Material.PAPER, Predicate { it.name.endsWith("_PICKAXE") || it.name.endsWith("_AXE") || it.name.endsWith("_SHOVEL") || it.name.endsWith("_HOE") || it.name.endsWith("_SWORD") }),
-        COMBAT("전투", Material.PAPER, Predicate { it.name.endsWith("_SWORD") || it.name.endsWith("_HELMET") || it.name.endsWith("_CHESTPLATE") || it.name.endsWith("_LEGGINGS") || it.name.endsWith("_BOOTS") || it == Material.BOW || it == Material.ARROW }),
+        TOOLS(
+            "도구",
+            Material.PAPER,
+            Predicate {
+                it.name.endsWith("_PICKAXE") || it.name.endsWith("_AXE") || it.name.endsWith("_SHOVEL") || it.name.endsWith(
+                    "_HOE"
+                ) || it.name.endsWith("_SWORD")
+            }),
+        COMBAT(
+            "전투",
+            Material.PAPER,
+            Predicate {
+                it.name.endsWith("_SWORD") || it.name.endsWith("_HELMET") || it.name.endsWith("_CHESTPLATE") || it.name.endsWith(
+                    "_LEGGINGS"
+                ) || it.name.endsWith("_BOOTS") || it == Material.BOW || it == Material.ARROW
+            }),
         FOOD("음식", Material.PAPER, Predicate { it.isEdible }),
-        REDSTONE("레드스톤", Material.PAPER, Predicate { it.name.contains("REDSTONE") || it.name.contains("REPEATER") || it.name.contains("COMPARATOR") || it.name.contains("PISTON") })
+        REDSTONE(
+            "레드스톤",
+            Material.PAPER,
+            Predicate {
+                it.name.contains("REDSTONE") || it.name.contains("REPEATER") || it.name.contains("COMPARATOR") || it.name.contains(
+                    "PISTON"
+                )
+            })
     }
-
 
     class Builder(var title: String) {
         var itemTransformer: Function<Material, GuiItem>? = null
@@ -245,7 +271,6 @@ class EncyclopediaGUI private constructor(builder: Builder) : ChestGui(6, builde
         fun withCollectionManager(manager: ItemCollectionManager) = apply { this.collectionManager = manager }
         fun build() = EncyclopediaGUI(this)
     }
-
 
     companion object {
         private const val ITEMS_PER_PAGE = 5 * 5
